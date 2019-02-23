@@ -1,0 +1,129 @@
+module type QUEUE_FUN =
+  sig
+    (* This module implements queues (FIFOs)in a functional way. *)
+    type 'a t
+    (* The type of queues containing elements of type ['a]. *)
+    exception Empty of string
+    (* Raised when [first] is applied to an empty queue. *)
+    val create: unit -> 'a t
+    (* [create()] returns a new queue, initially empty. *)
+    val enqueue: 'a * 'a t -> 'a t
+    (* [enqueue (x,q)] adds the element [x] at the end of queue [q]. *)
+    val dequeue: 'a t -> 'a t
+    (* [dequeue q] removes the first element in queue [q] *)
+    val first: 'a t -> 'a
+    (* [first q] returns the first element in queue [q] without removing
+it from the queue, or raises [Empty] if the queue is empty.*)
+    val isEmpty: 'a t -> bool
+  (* [isEmpty q] returns [true] if queue [q] is empty,
+otherwise returns [false]. *)
+  end;;
+
+
+(*Zadanie 1a*)
+
+module Q_typed : QUEUE_FUN =
+  struct
+    type 'a t = EmptyQueue | Enqueue of 'a * 'a t
+    exception Empty of string
+
+    let create() = EmptyQueue
+
+    let enqueue(x,q) = Enqueue(x,q) (*TODO DZIALA JAK STOS*)
+
+    let dequeue = function
+        Enqueue(_,q) -> q
+      | EmptyQueue -> EmptyQueue
+
+    let first = function
+        Enqueue(x,_) -> x
+      | EmptyQueue -> raise (Empty "module Q_typed: first")
+
+    let isEmpty q =
+      q = EmptyQueue
+  end;;
+
+print_endline "Testujemy kolejke stworzona z typu";;
+let c = Q_typed.create();;
+let q = ref (Q_typed.enqueue(1,c));;
+Q_typed.first !q;;
+q := Q_typed.enqueue(2,!q);;
+Q_typed.first !q;;
+q := Q_typed.dequeue !q;;
+Q_typed.first !q;;
+Q_typed.isEmpty !q;;
+q := Q_typed.dequeue !q;;
+Q_typed.isEmpty !q;;
+
+(*Zadanie 1b*)
+
+module Q_list : QUEUE_FUN =
+  struct
+    type 'a t = 'a list 
+    exception Empty of string
+
+    let create() = []
+
+    let enqueue(x,q) = x :: q (*TODO DZIALA JAK STOS*)
+
+    let dequeue = function
+        x :: q -> q
+      | [] -> []
+
+    let first = function
+        x :: q -> x
+      | [] -> raise (Empty "module Q_list: first")
+
+    let isEmpty q =
+      q = []
+  end;;
+
+print_endline "Testujemy kolejke stworzona z listy";;
+let c = Q_list.create();;
+let q = ref (Q_list.enqueue(1,c));;
+Q_list.first !q;;
+q := Q_list.enqueue(2,!q);;
+Q_list.first !q;;
+q := Q_list.dequeue !q;;
+Q_list.first !q;;
+Q_list.isEmpty !q;;
+q := Q_list.dequeue !q;;
+Q_list.isEmpty !q;;
+
+(*Zadanie 1c*)
+
+module Q_pair : QUEUE_FUN =
+  struct
+    type 'a t = 'a list * 'a list 
+    exception Empty of string
+
+    let create() = ([],[])
+
+    let enqueue(x,q) =
+      match q with
+        ([], ys) -> (List.rev (x::ys), [])
+      | (xs, ys) -> (xs, x::ys)
+
+    let dequeue = function
+        ([],[]) -> ([],[])
+      | (x::xs, ys) -> if xs = [] then (List.rev ys, []) else (xs, ys)
+
+    let first = function
+        (x::xs, _) -> x
+      | ([],[]) -> raise (Empty "module Q_pair: first")
+
+    let isEmpty q =
+      q = ([],[])
+  end;;
+
+print_endline "Testujemy kolejke stworzona z pary list";;
+let c = Q_pair.create();;
+let q = ref (Q_pair.enqueue(1,c));;
+Q_pair.first !q;;
+q := Q_pair.enqueue(2,!q);;
+Q_pair.first !q;;
+q := Q_pair.dequeue !q;;
+Q_pair.first !q;;
+Q_pair.isEmpty !q;;
+q := Q_pair.dequeue !q;;
+Q_pair.isEmpty !q;;
